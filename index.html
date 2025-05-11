@@ -1,52 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulateur Tarif Taxi Conventionné</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulateur Taxi Conventionné - Multi-passagers</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
+      margin: 20px auto;
+      max-width: 900px;
       background: #f8f9fa;
+      padding: 20px;
     }
     h1 {
-      font-size: 1.6em;
       text-align: center;
+    }
+    .passager {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px 20px;
+      margin-top: 15px;
+      border-radius: 6px;
     }
     label {
       display: block;
-      margin: 12px 0 6px;
+      margin-top: 10px;
     }
-    input, select {
-      padding: 8px;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1em;
+    input[type="number"] {
+      width: 100px;
     }
     button {
       margin-top: 20px;
-      padding: 12px 20px;
+      padding: 10px 20px;
       font-size: 1em;
       background-color: #007bff;
-      color: white;
+      color: #fff;
       border: none;
-      cursor: pointer;
       border-radius: 4px;
+      cursor: pointer;
     }
     button:hover {
       background-color: #0056b3;
     }
     .result {
-      margin-top: 30px;
-      font-size: 1.1em;
       background: #fff;
       padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-top: 30px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     ul {
       margin-top: 10px;
@@ -55,134 +56,131 @@
     ul li {
       margin-bottom: 6px;
     }
-
-    @media (min-width: 600px) {
-      .row {
-        display: flex;
-        gap: 20px;
-      }
-      .row > div {
-        flex: 1;
-      }
-    }
   </style>
 </head>
 <body>
-  <h1>Simulateur de Tarification - Taxi Conventionné 🚕</h1>
 
-  <div class="row">
-    <div>
-      <label for="departement">Département :</label>
-      <select id="departement"></select>
-    </div>
-    <div>
-      <label for="distance">Distance en km :</label>
-      <input type="number" id="distance" min="0" step="1" />
-    </div>
-  </div>
+<h1>Simulateur Taxi Conventionné - Multi-Passagers 🚕</h1>
 
-  <label><input type="checkbox" id="aire" /> Aire Métropolitaine</label>
-  <label><input type="checkbox" id="nuit" /> Nuit / Week-end / Jour férié</label>
+<label for="departement">Département :</label>
+<select id="departement"></select>
 
-  <label for="patients">Nombre de patients :</label>
-  <select id="patients">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4 ou plus</option>
-  </select>
+<label for="nbPassagers">Nombre de passagers :</label>
+<input type="number" id="nbPassagers" min="1" max="10" value="1" />
 
-  <label><input type="checkbox" id="retourVide" /> Retour à vide (hospitalisation)</label>
+<button onclick="genererFormulaires()">Générer les formulaires</button>
 
-  <button onclick="calculerTarif()">Calculer</button>
+<div id="formulairesPassagers"></div>
 
-  <div class="result" id="resultat"></div>
+<button onclick="calculerCourses()">Calculer</button>
 
-  <script>
-    const tarifsKm = {
-      1:1.13,2:1.20,3:1.19,4:1.14,5:1.18,6:1.27,7:1.17,8:1.17,9:1.15,10:1.13,
-      11:1.08,12:1.16,13:1.10,14:1.00,15:1.13,16:1.12,17:1.10,18:1.26,19:1.16,21:1.12,
-      22:1.13,23:1.18,24:1.11,25:1.08,26:1.16,27:1.21,28:1.19,29:1.03,"2A":1.27,"2B":1.27,
-      30:1.08,31:1.10,32:1.19,33:1.04,34:1.07,35:1.04,36:1.25,37:1.18,38:1.22,39:1.11,
-      40:1.13,41:1.13,42:1.08,43:1.24,44:1.08,45:1.00,46:1.13,47:1.11,48:1.25,49:1.08,
-      50:1.16,51:1.12,52:1.26,53:1.09,54:1.09,55:1.12,56:1.00,57:1.14,58:1.27,59:1.20,
-      60:1.20,61:1.17,62:1.20,63:1.08,64:1.14,65:1.01,66:1.18,67:0.97,68:1.05,69:0.98,
-      70:1.08,71:1.10,72:1.06,73:1.15,74:1.22,75:1.22,76:1.18,77:0.95,78:0.97,79:1.08,
-      80:1.15,81:1.07,82:1.00,83:1.16,84:1.20,85:1.06,86:1.11,87:1.10,88:1.10,89:1.11,
-      90:1.08,91:0.97,92:0.90,93:0.89,94:0.95,95:0.98,971:1.00,972:1.20,973:1.10,974:1.22,
-      976:0
-    };
+<div class="result" id="resultat"></div>
 
-    const select = document.getElementById('departement');
-    for (const code in tarifsKm) {
-      const option = document.createElement('option');
-      option.value = code;
-      option.text = `Département ${code}`;
-      select.appendChild(option);
+<script>
+  const tarifsKm = {
+    1:1.13,2:1.20,3:1.19,4:1.14,5:1.18,6:1.27,7:1.17,8:1.17,9:1.15,10:1.13,
+    11:1.08,12:1.16,13:1.10,14:1.00,15:1.13,16:1.12,17:1.10,18:1.26,19:1.16,21:1.12,
+    22:1.13,23:1.18,24:1.11,25:1.08,26:1.16,27:1.21,28:1.19,29:1.03,"2A":1.27,"2B":1.27,
+    30:1.08,31:1.10,32:1.19,33:1.04,34:1.07,35:1.04,36:1.25,37:1.18,38:1.22,39:1.11,
+    40:1.13,41:1.13,42:1.08,43:1.24,44:1.08,45:1.00,46:1.13,47:1.11,48:1.25,49:1.08,
+    50:1.16,51:1.12,52:1.26,53:1.09,54:1.09,55:1.12,56:1.00,57:1.14,58:1.27,59:1.20,
+    60:1.20,61:1.17,62:1.20,63:1.08,64:1.14,65:1.01,66:1.18,67:0.97,68:1.05,69:0.98,
+    70:1.08,71:1.10,72:1.06,73:1.15,74:1.22,75:1.22,76:1.18,77:0.95,78:0.97,79:1.08,
+    80:1.15,81:1.07,82:1.00,83:1.16,84:1.20,85:1.06,86:1.11,87:1.10,88:1.10,89:1.11,
+    90:1.08,91:0.97,92:0.90,93:0.89,94:0.95,95:0.98,971:1.00,972:1.20,973:1.10,974:1.22,
+    976:0
+  };
+
+  const select = document.getElementById("departement");
+  for (const code in tarifsKm) {
+    const option = document.createElement("option");
+    option.value = code;
+    option.text = `Département ${code}`;
+    select.appendChild(option);
+  }
+
+  function genererFormulaires() {
+    const nb = parseInt(document.getElementById("nbPassagers").value);
+    const container = document.getElementById("formulairesPassagers");
+    container.innerHTML = "";
+    for (let i = 1; i <= nb; i++) {
+      container.innerHTML += `
+        <div class="passager" id="passager${i}">
+          <h3>Passager ${i}</h3>
+          <label>Distance (en km) :</label>
+          <input type="number" id="distance${i}" min="0" step="1" required />
+          <label><input type="checkbox" id="nuit${i}" /> Nuit / Week-end / Férié</label>
+          <label><input type="checkbox" id="retour${i}" /> Retour à vide (hospitalisation)</label>
+          <label><input type="checkbox" id="aire${i}" /> Forfait aire métropolitaine (+15 €)</label>
+        </div>
+      `;
     }
+  }
 
-    function calculerTarif() {
-      const dept = document.getElementById('departement').value;
-      const distance = parseFloat(document.getElementById('distance').value);
-      if (isNaN(distance)) return alert("Entrez une distance valide !");
-      const estAire = document.getElementById('aire').checked;
-      const estNuit = document.getElementById('nuit').checked;
-      const patients = parseInt(document.getElementById('patients').value);
-      const retourVide = document.getElementById('retourVide').checked;
+  function calculerCourses() {
+    const nb = parseInt(document.getElementById("nbPassagers").value);
+    const dept = document.getElementById("departement").value;
+    const tarifKm = tarifsKm[dept] || 1.00;
+    let total = 0;
+    let resultHTML = `<h2>Résultat</h2><ul>`;
 
-      const tarifKm = tarifsKm[dept] || 1.00;
+    for (let i = 1; i <= nb; i++) {
+      const distance = parseInt(document.getElementById(`distance${i}`).value);
+      const estNuit = document.getElementById(`nuit${i}`).checked;
+      const retourVide = document.getElementById(`retour${i}`).checked;
+      const aire = document.getElementById(`aire${i}`).checked;
+
+      if (isNaN(distance)) {
+        alert(`Veuillez saisir une distance valide pour le passager ${i}`);
+        return;
+      }
+
+      let detail = `<strong>Passager ${i}</strong><ul>`;
+      let prix = 13;
+      detail += `<li>Forfait : 13 € (inclut les 4 premiers km)</li>`;
+
+      if (aire) {
+        prix += 15;
+        detail += `<li>Forfait aire métropolitaine : 15 €</li>`;
+      }
+
       const kmFactures = Math.max(0, distance - 4);
       const coutDistance = kmFactures * tarifKm;
+      prix += coutDistance;
+      detail += `<li>Kilométrage : ${kmFactures} km × ${tarifKm} € = ${coutDistance.toFixed(2)} €</li>`;
 
-      let detailList = [];
-      let typeTransport = (patients === 1) ? "Transport individuel" : "Transport partagé";
-      detailList.push(`<strong>${typeTransport}</strong>`);
-
-      let total = 13;
-      detailList.push("Forfait prise en charge : 13 € (inclut les 4 premiers km)");
-
-      if (estAire) {
-        total += 15;
-        detailList.push("Forfait aire métropolitaine : 15 €");
-      }
-
-      total += coutDistance;
-      detailList.push(`Distance facturée : ${kmFactures} km × ${tarifKm} € = ${coutDistance.toFixed(2)} €`);
-
-      // Majoration : nuit ou retour à vide (non cumulés)
       if (estNuit) {
-        total *= 1.5;
-        detailList.push("Majoration nuit/week-end : +50% sur le total");
+        prix *= 1.5;
+        detail += `<li>Majoration nuit/week-end : +50%</li>`;
       } else if (retourVide) {
-        const tauxMaj = (distance < 50) ? 0.25 : 0.5;
-        const majRetour = coutDistance * tauxMaj;
-        total += majRetour;
-        detailList.push(`Majoration retour à vide : +${tauxMaj * 100}% sur la part kilométrique (${majRetour.toFixed(2)} €)`);
+        const taux = distance < 50 ? 0.25 : 0.5;
+        const maj = coutDistance * taux;
+        prix += maj;
+        detail += `<li>Majoration retour à vide : +${(taux * 100)}% sur la part km = ${maj.toFixed(2)} €</li>`;
       }
 
-      // Réductions
-      if (patients === 2) {
-        total *= 0.77;
-        detailList.push("Réduction transport partagé (2 patients) : -23%");
-      } else if (patients === 3) {
-        total *= 0.65;
-        detailList.push("Réduction transport partagé (3 patients) : -35%");
-      } else if (patients >= 4) {
-        total *= 0.63;
-        detailList.push("Réduction transport partagé (4 ou +) : -37%");
-      } else if (patients >= 2 && distance >= 30) {
-        total *= 0.95;
-        detailList.push("Réduction longue distance (transport partagé ≥30 km) : -5%");
+      if (nb === 2) {
+        prix *= 0.77;
+        detail += `<li>Réduction (2 passagers) : -23%</li>`;
+      } else if (nb === 3) {
+        prix *= 0.65;
+        detail += `<li>Réduction (3 passagers) : -35%</li>`;
+      } else if (nb >= 4) {
+        prix *= 0.63;
+        detail += `<li>Réduction (4 ou +) : -37%</li>`;
       }
 
-      total = Math.round(total * 100) / 100;
-
-      let detailsHTML = `<p><strong>Tarif estimé : ${total} €</strong></p><ul>`;
-      detailList.forEach(d => detailsHTML += `<li>${d}</li>`);
-      detailsHTML += `</ul>`;
-
-      document.getElementById('resultat').innerHTML = detailsHTML;
+      prix = Math.round(prix * 100) / 100;
+      total += prix;
+      detail += `<li><strong>Sous-total : ${prix.toFixed(2)} €</strong></li></ul><br>`;
+      resultHTML += `<li>${detail}</li>`;
     }
-  </script>
+
+    total = Math.round(total * 100) / 100;
+    resultHTML += `</ul><h3>Total global : ${total.toFixed(2)} €</h3>`;
+    document.getElementById("resultat").innerHTML = resultHTML;
+  }
+</script>
+
 </body>
 </html>
